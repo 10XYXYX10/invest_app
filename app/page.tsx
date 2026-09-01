@@ -1,69 +1,43 @@
-import Image from "next/image";
+import DashboardClient from "@/components/dashboard/DashboardClient";
+import { FX_PAIRS, FX_PAIR_IDS } from "@/lib/config";
 
-export default function Home() {
+export default function Page() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 sm:px-6 lg:px-8">
+      <DashboardClient />
+      <section className="mx-auto mt-8 w-full max-w-6xl space-y-1 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+        <h2 className="font-medium text-zinc-600 dark:text-zinc-300">指数の定義</h2>
+        <p>
+          X(下落率) = (現在価格 − 過去最高値) ÷ 過去最高値 × 100 /{" "}
+          Y(為替乖離) = (現在の為替レート − 基準値) ÷ 基準値 × 100。
+          指数がしきい値以下で買いシグナルが点灯します。
+        </p>
+        <p>
+          <strong className="font-medium">為替の基準値(中央値)は通貨ペアごと</strong>に置いています(
+          {FX_PAIR_IDS.map((id) => `${FX_PAIRS[id].label} ${FX_PAIRS[id].base} 円`).join(" / ")})。
+          Y をどのペアで測るかは銘柄ごとに決めており、インド Nifty50 は組入資産がルピー建てのため
+          {FX_PAIRS.INRJPY.label}、それ以外は{FX_PAIRS.USDJPY.label}を使います。
+          各ペアの基準値の根拠は個別ページの為替の注記に書いています。
+        </p>
+        <p>
+          <strong className="font-medium">ドル建て銘柄(米国上場ETF)</strong>は 円ベース割安度指数 = X + Y。
+          X はドル建て価格で計算します(円建て価格を使うと為替が二重カウントになるため)。
+        </p>
+        <p>
+          <strong className="font-medium">円建て銘柄(投資信託・国内上場ETF)</strong>は 割安度指数 = X のみ。
+          価格が円建てで公表され為替が既に織り込まれているため、Y を足すと同じく二重カウントになります。
+        </p>
+        <p>
+          ただし<strong className="font-medium">円建て = 為替リスクなし ではありません</strong>。
+          中身はほぼ外貨資産なので、円高になれば現地の株価が変わらなくても円換算の価値は目減りします。
+          そのため円建て銘柄には <strong className="font-medium">為替調整後(参考) = X + Y</strong> を併記しています
+          (為替が基準値へ戻ったときの割安度の目安。買いシグナルの判定には使いません)。
+        </p>
+        <p>
+          過去最高値は終値(投資信託は基準価額)ベースです。米国ETFは Yahoo Finance が返す範囲、
+          投資信託は投資信託協会が公表する設定来の全期間に限られます。
+        </p>
+      </section>
+    </main>
   );
 }

@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ローカル SQLite (投信の基準価額キャッシュ)
+data/
